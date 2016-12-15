@@ -16,7 +16,6 @@
       };
 
       $.post(ajaxConfig.url, data, function (response) {
-        alert('Got this from the server: ' + response);
       });
     }
   });
