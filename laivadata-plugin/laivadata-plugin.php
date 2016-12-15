@@ -11,19 +11,15 @@
 
 // Define search code
 function search_form_code() {
-	echo '<div class="col-md-11 search-input-container">';
-    echo '<input id="main-search-input" class="form-control input-lg" type="text" />';
-    echo '</div>';
-    echo '<div class="col-sm-1">';
-    echo '<button id="main-search-btn" class="btn btn-primary btn-lg">Tee haku</button>';
-    echo '</div>';
-    echo '<div class="col-md-12">';
-    echo '<div class="main-search-results"></div>';
-    echo '</div>';
-	wp_enqueue_script('bootbox', 'https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', false);
-	wp_enqueue_script('fontawesome', 'https://use.fontawesome.com/095a8f8320.js', false);
-	wp_enqueue_script('templates', plugin_dir_url(__FILE__) . 'js/templates.js', array('jquery'));
-	wp_enqueue_script('ship-api', plugin_dir_url(__FILE__) . 'js/ship-api.js', array('jquery'));
+  echo '<div id="ship-api-search"></div>';
+  wp_enqueue_style('ship-api-theme-style', plugin_dir_url(__FILE__) . 'js/theme/dist/ship-api-bootstrap-theme.min.css' );
+	wp_enqueue_script('ship-api-bootbox', 'https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js', false);
+	wp_enqueue_script('ship-api-fontawesome', 'https://use.fontawesome.com/095a8f8320.js', false);
+	wp_enqueue_script('ship-api-theme-script', plugin_dir_url(__FILE__) . 'js/theme/dist/ship-api-bootstrap-theme.min.js', array('jquery'));
+	wp_enqueue_script('ship-api-script', plugin_dir_url(__FILE__) . 'js/dist/ship-api.min.js', array('jquery'));
+  wp_enqueue_script('ship-api-init-script', plugin_dir_url(__FILE__) . 'js/plugin.js', array('jquery'));
+
+  wp_localize_script( 'ship-api-init-script', 'ajaxConfig', array( 'url' => admin_url( 'admin-ajax.php' ) ) );
 }
 
 // Create Wordpress constructor using default widget template
@@ -94,5 +90,35 @@ class Laivadata_Widget extends WP_Widget {
 function register_laivadata_widget() {
     register_widget( 'Laivadata_Widget' );
 }
+
+function ships_searched_callback() {
+	if ( is_user_logged_in() ) {
+    global $current_user;
+    get_currentuserinfo();
+
+    $query = ( ! empty( $_POST['query'] ) ) ? strip_tags( $_POST['query'] ) : '';
+    $offset = ( ! empty( $_POST['offset'] ) ) ? strip_tags( $_POST['offset'] ) : '';
+
+    $old_searches = get_user_meta($current_user->ID, 'user_searches', true);
+    if (isset($old_searches)&& is_array($old_searches)){
+        $old_searches[] = array('query' => $query, 'offset' => $offset);
+    } else {
+      $old_searches = array();
+      $old_searches[] = array('query' => $query, 'offset' => $offset);
+    }
+
+    update_user_meta( $current_user->ID, 'user_searches', $old_searches);
+
+    echo 'saved'; 
+  } else {
+    echo 'not-logged-in';
+  }
+	wp_die();
+}
+
 add_action( 'widgets_init', 'register_laivadata_widget' );
+
+add_action( 'wp_ajax_ships_searched', 'ships_searched_callback' );
+add_action( 'wp_ajax_nopriv_ships_searched', 'ships_searched_callback' );
+
 ?>
