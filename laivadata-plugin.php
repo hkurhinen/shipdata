@@ -19,6 +19,17 @@ function search_form_code() {
 	wp_enqueue_script('ship-api-script', plugin_dir_url(__FILE__) . 'js/dist/ship-api.min.js', array('jquery'));
   wp_enqueue_script('ship-api-init-script', plugin_dir_url(__FILE__) . 'js/plugin.js', array('jquery'));
 
+  $previousSearches = [];
+	if ( is_user_logged_in() ) {
+    global $current_user;
+    get_currentuserinfo();
+    $old_searches = get_user_meta($current_user->ID, 'user_searches', true);
+    if (isset($old_searches)&& is_array($old_searches)){
+      $previousSearches = $old_searches;
+    }
+  }
+
+  wp_localize_script( 'ship-api-init-script', 'previousSearches', array( 'data' => json_encode($previousSearches) ) );
   wp_localize_script( 'ship-api-init-script', 'ajaxConfig', array( 'url' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -102,6 +113,9 @@ function ships_searched_callback() {
     $old_searches = get_user_meta($current_user->ID, 'user_searches', true);
     if (isset($old_searches)&& is_array($old_searches)){
         $old_searches[] = array('query' => $query, 'offset' => $offset);
+        if(count($old_searches) > 10) {
+          array_shift($old_searches);
+        }
     } else {
       $old_searches = array();
       $old_searches[] = array('query' => $query, 'offset' => $offset);
@@ -109,7 +123,7 @@ function ships_searched_callback() {
 
     update_user_meta( $current_user->ID, 'user_searches', $old_searches);
 
-    echo 'saved'; 
+    echo json_encode($old_searches); 
   } else {
     echo 'not-logged-in';
   }
