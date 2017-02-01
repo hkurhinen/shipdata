@@ -25,6 +25,7 @@
 
 
   $('#ship-api-search').shipApi({
+    url: 'https://api.laivadata.fi/v1',
     prevSearches: parsePreviousSearches(JSON.parse(previousSearches.data)),
     onShipSelect: function (ship, html) {
       var dialog = bootbox.dialog({
