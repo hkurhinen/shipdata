@@ -34,17 +34,19 @@
       });
     },
     afterSearch: function (search) {
-      var data = {
-        action: 'ships_searched',
-        query: search.query,
-        offset: search.offset
-      };
+      if (search.query && search.query !== '') {
+        var data = {
+          action: 'ships_searched',
+          query: search.query,
+          offset: search.offset
+        };
 
-      $.post(ajaxConfig.url, data, function (response) {
-        if (response !== 'not-logged-in') {
-          $('#ship-api-search').trigger('set-prev-searches', parsePreviousSearches(JSON.parse(response)));
-        }
-      });
+        $.post(ajaxConfig.url, data, function (response) {
+          if (response !== 'not-logged-in') {
+            $('#ship-api-search').trigger('set-prev-searches', parsePreviousSearches(JSON.parse(response)));
+          }
+        });
+      }
     }
   });
 
